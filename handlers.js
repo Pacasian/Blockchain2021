@@ -1,27 +1,35 @@
-let contract = require('./contract.js')
-let method = require('./method.js')
+// create a web server
 
-const express = require('express')
-const { METHODS } = require('http')
-const app = express()
-app.use(express.json())
+// add a URL to the web server to do a transfer
 
-app.get('/totalsupply', async (req,res) => {
-    res.send(await contract.totalSupply())
-})
+// let's use this web server to distribute our tokens
 
-app.post('/transfer', async (req, res) => {
-    var account_from = req.body.account_from;
-    var account_to = req.body.account_to;
-    var amount = req.body.amount;
+// if there's time, let's add a docker container
 
-    res.send(await method.transferFunds(account_from, account_to, amount));
-})
+let contract = require("./contract.js");
+let method = require("./method.js");
+let distribute = require('./distribute.js');
 
-app.get('/balance/:id', async (req, res) => {
-    var account = req.params.id
-    res.send( await method.getBalanceOf(account))
-})
+const express = require("express");
+
+const app = express();
+
+app.use(express.json());
 
 const port = 8080;
-app.listen(port, () => console.log(`Listening on port ${port}...`));
+
+app.get('/symbol', async(req,res) => {
+    res.send(await contract.getSymbol())
+})
+
+app.post('/transfer', async(req, res) => {
+    let account_to = req.body.account_to;
+    let amount = req.body.amount;
+
+    res.send(await method.transferToken(account_to, amount));
+})
+
+app.get('/distribute', async(req, res) => {
+    res.send(await distribute.distribute());
+})
+app.listen(port, () => console.log(`listening on port ${port}...`));
